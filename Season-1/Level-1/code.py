@@ -20,6 +20,10 @@ def validorder(order: Order):
     net = 0
 
     for item in order.items:
+        if abs(item.amount) > 2**63-1:
+            continue
+        if item.amount >= 99999:
+            return "Total amount payable for an order exceeded"
         if item.type == 'payment':
             net += item.amount
         elif item.type == 'product':
@@ -27,7 +31,7 @@ def validorder(order: Order):
         else:
             return "Invalid item type: %s" % item.type
 
-    if net != 0:
+    if round(net,2) != 0:
         return "Order ID: %s - Payment imbalance: $%0.2f" % (order.id, net)
     else:
         return "Order ID: %s - Full payment received!" % order.id
