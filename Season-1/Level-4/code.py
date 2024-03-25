@@ -90,23 +90,22 @@ class DB_CRUD_ops(object):
 
             res = "[METHOD EXECUTED] get_stock_info\n"
             query = "SELECT * FROM stocks WHERE symbol = '{0}'".format(stock_symbol)
+            prepared_query = "SELECT * FROM stocks WHERE symbol = ?"
             res += "[QUERY] " + query + "\n"
 
             # a block list (aka restricted characters) that should not exist in user-supplied input
             restricted_chars = ";%&^!#-"
             # checks if input contains characters from the block list
             has_restricted_char = any([char in query for char in restricted_chars])
-            # checks if input contains a wrong number of single quotes against SQL injection
-            correct_number_of_single_quotes = query.count("'") == 2
 
             # performs the checks for good cyber security and safe software against SQL injection
-            if has_restricted_char or not correct_number_of_single_quotes:
+            if has_restricted_char:
                 # in case you want to sanitize user input, please uncomment the following 2 lines
                 # sanitized_query = query.translate({ord(char):None for char in restricted_chars})
                 # res += "[SANITIZED_QUERY]" + sanitized_query + "\n"
                 res += "CONFIRM THAT THE ABOVE QUERY IS NOT MALICIOUS TO EXECUTE"
             else:
-                cur.execute(query)
+                cur.execute(prepared_query, (stock_symbol,))
 
                 query_outcome = cur.fetchall()
                 for result in query_outcome:
@@ -134,15 +133,17 @@ class DB_CRUD_ops(object):
 
             res = "[METHOD EXECUTED] get_stock_price\n"
             query = "SELECT price FROM stocks WHERE symbol = '" + stock_symbol + "'"
-            res += "[QUERY] " + query + "\n"
+            prepared_query = "SELECT price FROM stocks WHERE symbol = ?"
             if ';' in query:
-                res += "[SCRIPT EXECUTION]\n"
-                cur.executescript(query)
-            else:
-                cur.execute(query)
-                query_outcome = cur.fetchall()
-                for result in query_outcome:
-                    res += "[RESULT] " + str(result) + "\n"
+                sanitized_input = stock_symbol.split(';')[0].strip()[:-1]
+                stock_symbol = sanitized_input
+                # res += "[SCRIPT EXECUTION]\n"
+                # cur.executescript(query)
+            res += "[QUERY] " + prepared_query.replace("?", f"'{stock_symbol}'") + "\n"
+            cur.execute(prepared_query, (stock_symbol, ))
+            query_outcome = cur.fetchall()
+            for result in query_outcome:
+                res += "[RESULT] " + str(result) + "\n"
             return res
 
         except sqlite3.Error as e:
