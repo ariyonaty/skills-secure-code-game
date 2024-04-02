@@ -22,36 +22,21 @@ class Random_generator:
     def generate_salt(self, rounds=12):
         return bcrypt.gensalt(rounds=rounds)
 
-class SHA256_hasher:
+class Hasher:
 
-    # produces the password hash by combining password + salt because hashing
+    # produces the password hash using bcrypt
     def password_hash(self, password, salt):
-        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
-        password_hash = bcrypt.hashpw(password, salt)
-        return password_hash.decode('ascii')
+        hashed_password = bcrypt.hashpw(password.encode(), salt)
+        return hashed_password.decode('utf-8')
 
-    # verifies that the hashed password reverses to the plain text version on verification
+    # verifies the password using bcrypt
     def password_verification(self, password, password_hash):
-        password = binascii.hexlify(hashlib.sha256(password.encode()).digest())
-        password_hash = password_hash.encode('ascii')
-        return bcrypt.checkpw(password, password_hash)
-
-class MD5_hasher:
-
-    # same as above but using a different algorithm to hash which is MD5
-    def password_hash(self, password):
-        return hashlib.md5(password.encode()).hexdigest()
-
-    def password_verification(self, password, password_hash):
-        password = self.password_hash(password)
-        return secrets.compare_digest(password.encode(), password_hash.encode())
+        return bcrypt.checkpw(password.encode(), password_hash.encode('utf-8'))
 
 # a collection of sensitive secrets necessary for the software to operate
 PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
 PUBLIC_KEY = os.environ.get('PUBLIC_KEY')
 SECRET_KEY = os.environ.get('SECRET_KEY')
-PASSWORD_HASHER = 'SHA256_hasher'
-
 
 # Contribute new levels to the game in 3 simple steps!
 # Read our Contribution Guideline at github.com/skills/secure-code-game/blob/main/CONTRIBUTING.md
