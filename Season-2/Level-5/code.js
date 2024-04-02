@@ -9,12 +9,17 @@ var CryptoAPI = (function() {
 	};
 
 	var API = {
-		sha1: {
+		// Fix so _round cannot be modified
+		sha1: Object.freeze({
 			name: 'sha1',
 			identifier: '2b0e03021a',
 			size: 20,
 			block: 64,
 			hash: function(s) {
+				// Validate input
+				if (typeof s !== 'string') {
+					throw new Error('Input must be a string');
+				}
 				var len = (s += '\x80').length,
 					blocks = len >> 6,
 					chunk = len & 63,
@@ -51,8 +56,19 @@ var CryptoAPI = (function() {
 				return res;
 			}, // End "hash"
 			_round: function(H, w) { }
-		} // End "sha1"
+		}) // End "sha1"
 	}; // End "API"
+
+    // Mitigate the vulnerability by preventing modifications to Array.prototype.__defineSetter__
+    if (Array.prototype.__defineSetter__) {
+        Object.defineProperty(Array.prototype, "__defineSetter__", {
+            value: undefined,
+            configurable: false,
+            enumerable: false,
+            writable: false
+        });
+    }
+
 
 	return API; // End body of anonymous function
 })(); // End "CryptoAPI"
