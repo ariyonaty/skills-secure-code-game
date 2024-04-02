@@ -35,6 +35,9 @@ class TaxPayer:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         prof_picture_path = os.path.normpath(os.path.join(base_dir, path))
 
+        if not prof_picture_path.startswith(base_dir):
+            raise Exception("not allowed")
+
         with open(prof_picture_path, 'rb') as pic:
             picture = bytearray(pic.read())
 
@@ -52,7 +55,12 @@ class TaxPayer:
         if path.startswith('..') or "./.." in path:
             return None
 
-        with open(path, 'rb') as form:
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        fullpath = os.path.normpath(os.path.join(base_dir, path))
+        if not fullpath.startswith(base_dir):
+            raise Exception("not allowed")
+
+        with open(fullpath, 'rb') as form:
             tax_data = bytearray(form.read())
 
         # assume that tax data is returned on screen after this
